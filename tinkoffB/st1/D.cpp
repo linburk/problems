@@ -1,0 +1,124 @@
+#include <bits/stdc++.h>
+#include <climits>
+namespace /* clang-format off */ {
+namespace /* aliases */ {
+#define all(cont) cont.begin(), cont.end()
+using i8 = std::int8_t; using i16 = std::int16_t; using i32 = std::int32_t; using i64 = std::int64_t;
+using u8 = std::uint8_t; using u16 = std::uint16_t; using u32 = std::uint32_t; using u64 = std::uint64_t; using f64 = long double;
+using pi32 = std::pair<i32, i32>; using vpi32 = std::vector<pi32>; using vvpi32 = std::vector<vpi32>; using pi64 = std::pair<i64, i64>;  using vpi64 = std::vector<pi64>; using vvpi64 = std::vector<vpi64>;
+using vi32 = std::vector<i32>; using vvi32 = std::vector<vi32>; using vi64 = std::vector<i64>; using vvi64 = std::vector<vi64>;
+using vb = std::vector<bool>; using vvb = std::vector<vb>; using vc = std::vector<char>; using vvc = std::vector<vc>;
+using si32 = std::set<i32>; using spi32 = std::set<pi32>; using si64 = std::set<i64>; using spi64 = std::set<pi64>;
+using mpi32 = std::map<i32, i32>; using umpi32 = std::unordered_map<i32, i32>; using mpi64 = std::map<i64, i64>;  using umpi64 = std::unordered_map<i64, i64>;
+}
+namespace /* in/out op. overloadings */ {
+template <typename T, typename V> std::istream &operator>>(std::istream &is, std::pair<T, V> &p) { is >> p.first >> p.second; return is; }
+template <typename T> std::istream &operator>>(std::istream &is, std::vector<T> &cont) { for (auto &i : cont) { is >> i; } return is; }
+template <typename T, typename V, char SEP1 = ' ', char SEP2 = '\n'> std::ostream &operator<<(std::ostream &os, std::pair<T, V> const &p) { os << p.first << SEP1 << p.second << SEP2; return os; }
+template <typename T, char SEP1 = ' ', char SEP2 = '\n'> std::ostream &operator<<(std::ostream &os, const std::vector<T> &cont) { for (const auto &i : cont) { os << i; if (SEP1) os << SEP1; } os << SEP2; return os; }
+}
+namespace /* functions */ {
+#if __cplusplus >= 202002L
+template <char SEP = ' '> void debug(auto&&...args) { ((std::cout << args << SEP), ...); std::cout << "\n"; }
+#endif
+template <typename T> void inline unique(std::vector<T> &cont) { cont.erase(std::unique(cont.begin(), cont.end()), cont.end()); }
+std::mt19937_64 randu64(std::chrono::steady_clock().now().time_since_epoch().count());
+}
+using std::vector, std::string, std::pair, std::cin, std::cout;
+} /* clang-format on */
+#define REDIRECT 1 && __APPLE__
+#define MULTITEST 0
+
+class st final {
+  struct node {
+    i32 cnt;
+  };
+  vector<node> tr;
+  i32 sz;
+  void build(vi32 const &a, i32 l, i32 r, i32 n) {
+    if (l == r - 1) {
+      tr[n].cnt = a[l] == 0;
+      return;
+    }
+    build(a, l, (l + r) >> 1, n << 1);
+    build(a, (l + r) >> 1, r, n << 1 | 1);
+    tr[n].cnt = tr[n << 1].cnt + tr[n << 1 | 1].cnt;
+  }
+  void update(i32 x, i32 pos, i32 l, i32 r, i32 n) {
+    if (l > pos || r <= pos)
+      return;
+    if (l == r - 1) {
+      tr[n].cnt = x == 0;
+      return;
+    }
+    update(x, pos, l, (l + r) >> 1, n << 1);
+    update(x, pos, (l + r) >> 1, r, n << 1 | 1);
+    tr[n].cnt = tr[n << 1].cnt + tr[n << 1 | 1].cnt;
+  }
+  i32 count(i32 ql, i32 qr, i32 l, i32 r, i32 n) {
+    if (l >= qr || r <= ql)
+      return 0;
+    if (ql <= l && r <= qr)
+      return tr[n].cnt;
+    return count(ql, qr, l, (l + r) >> 1, n << 1) +
+           count(ql, qr, (l + r) >> 1, r, n << 1 | 1);
+  }
+
+public:
+  st(vi32 const &a) {
+    sz = (i32)a.size();
+    tr.resize(4 * sz);
+    build(a, 0, sz, 1);
+  }
+  void update(i32 x, i32 pos) { return update(x, pos, 0, sz, 1); }
+  i32 count(i32 ql, i32 qr) { return count(ql, qr, 0, sz, 1); }
+  i32 get(i32 ql, i32 qr, i32 k) {
+    i32 l = ql - 1, r = qr;
+    while (r - l > 1) {
+      count(ql, (l + r) >> 1) >= k ? r = (l + r) >> 1 : l = (l + r) >> 1;
+    }
+    if (count(ql, r) < k)
+      return -1;
+    return r;
+  }
+};
+void solve() {
+  i32 n;
+  cin >> n;
+  vi32 a(n);
+  cin >> a;
+  st tr(a);
+  i32 k;
+  cin >> k;
+  for (i32 i = 0; i < k; ++i) {
+    char c;
+    cin >> c;
+    if (c == 'u') {
+      i32 p, x;
+      cin >> p >> x;
+      tr.update(x, p - 1);
+    } else {
+      i32 l, r, k;
+      cin >> l >> r >> k;
+      cout << tr.get(l - 1, r, k) << '\n';
+    }
+  }
+}
+
+#define PRECALCULATE 0
+void precalc();
+i32 main(i32 argc, char *argv[]) /* clang-format off */ {
+    std::cin.tie(nullptr); std::ios_base::sync_with_stdio(false); setlocale(LC_ALL, "Russian");
+#if REDIRECT
+    std::freopen("/Users/dmitrii/Documents/Code/Code/input.txt", "r", stdin);
+    std::freopen("/Users/dmitrii/Documents/Code/Code/output.txt", "w", stdout);
+#endif
+#if PRECALCULATE
+    precalc();
+#endif
+#if MULTITEST
+    i32 t; std::cin >> t; for (i32 i = 0; i < t; i++)
+#endif
+    solve();
+    return 0;
+} /* clang-format on */
