@@ -54,6 +54,12 @@ void reverse(char *s, int len)
 
 char *next_match(char *hay, regex_t *reg, int *match_len)
 {
+	regmatch_t match;
+	int res = regexec(reg, hay, 1, &match, 0);
+	if (res == REG_NOMATCH)
+		return NULL;
+	*match_len = match.rm_eo - match.rm_so;
+	return hay + match.rm_so;
 }
 
 int reverse_entries(char *hay, char *ndl)
